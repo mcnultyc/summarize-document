@@ -14,12 +14,23 @@ from nltk.cluster.util import cosine_distance
 from sklearn.feature_extraction.text import CountVectorizer
 import numpy as np
 import networkx as nx
+from networkx.exception import NetworkXError
+from networkx.exception import PowerIterationFailedConvergence
 import re
+import sys
+import logging
 
+nltk.download('stopwords')
+nltk.download('punkt')
+stop_words = stopwords.words('english')
 
-def summarize(text, stop_words, limit=5):
+logger = logging.getLogger(__name__)
+
+def summarize(text, limit=4):
     # Get sentence tokens from text
     sents = sent_tokenize(text)
+    if len(sents) <= limit:
+        return text
     
     sent_tokens = []
     clean_sents = []
@@ -50,18 +61,20 @@ def summarize(text, stop_words, limit=5):
             
     # Create graph from similarity matrix
     similarity_graph = nx.from_numpy_array(similarity_matrix)
-    # Rank graph
-    scores = nx.pagerank(similarity_graph)
+    try:
+        # Rank graph
+        scores = nx.pagerank(G = similarity_graph, max_iter=500)
+    except (PowerIterationFailedConvergence, NetworkXError) as error:
+        logger.debug("NetworkX error: ",error)
+        return text
+    except:
+        logger.debug("Unknown error: ",sys.exc_info()[0])
+        return text
+    
     # Sort sentences by their page rank
     ranked_sents = sorted(((scores[i],sent) for i,sent in enumerate(sents)), reverse=True)   
     summary = [sent for _, sent in ranked_sents]
     # Limit the number of sentences in summary
     return " ".join(summary[:limit])
 
-if __name__ == "__main__":
-    nltk.download('stopwords')
-    nltk.download('punkt')
-    stop_words = stopwords.words('english')
-    file = open("payment.txt")
-    text = file.read()
-    print(summarize(text, stop_words))
+
