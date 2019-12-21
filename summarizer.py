@@ -24,7 +24,7 @@ nltk.download('stopwords')
 nltk.download('punkt')
 stop_words = stopwords.words('english')
 
-logger = logging.getLogger(__name__)
+#logger = logging.getLogger(__name__)
 
 def summarize(text, limit=4):
     # Get sentence tokens from text
@@ -65,10 +65,8 @@ def summarize(text, limit=4):
         # Rank graph
         scores = nx.pagerank(G = similarity_graph, max_iter=500)
     except (PowerIterationFailedConvergence, NetworkXError) as error:
-        logger.debug("NetworkX error: ",error)
         return text
     except:
-        logger.debug("Unknown error: ",sys.exc_info()[0])
         return text
     
     # Sort sentences by their page rank
