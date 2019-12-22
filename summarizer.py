@@ -24,13 +24,20 @@ nltk.download('stopwords')
 nltk.download('punkt')
 stop_words = stopwords.words('english')
 
-#logger = logging.getLogger(__name__)
 
-def summarize(text, limit=4):
+def summarize(text, limit=3):
     # Get sentence tokens from text
     sents = sent_tokenize(text)
+    summary = ""
+    # Summarize 10 sentences at a time
+    for i in range(0, len(sents), 10):
+        summary += _summarize(sents[i:i+10], limit)
+    return summary
+
+def _summarize(sents, limit):
+    
     if len(sents) <= limit:
-        return text
+        return " ".join(sents)
     
     sent_tokens = []
     clean_sents = []
@@ -63,11 +70,11 @@ def summarize(text, limit=4):
     similarity_graph = nx.from_numpy_array(similarity_matrix)
     try:
         # Rank graph
-        scores = nx.pagerank(G = similarity_graph, max_iter=500)
+        scores = nx.pagerank(G = similarity_graph, max_iter=800)
     except (PowerIterationFailedConvergence, NetworkXError) as error:
-        return text
+        return " ".join(sents)
     except:
-        return text
+        return " ".join(sents)
     
     # Sort sentences by their page rank
     ranked_sents = sorted(((scores[i],sent) for i,sent in enumerate(sents)), reverse=True)   
