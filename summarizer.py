@@ -28,10 +28,14 @@ stop_words = stopwords.words('english')
 def summarize(text, limit=3):
     # Get sentence tokens from text
     sents = sent_tokenize(text)
-    summary = ""
-    # Summarize 10 sentences at a time
-    for i in range(0, len(sents), 10):
-        summary += _summarize(sents[i:i+10], limit)
+    if len(sents) >= 40:
+        summary = ""
+        # Summarize 10 sentences at a time
+        for i in range(0, len(sents), 10):
+            summary += _summarize(sents[i:i+10], limit)
+    else:
+        summary = _summarize(sents, limit)
+    
     return summary
 
 def _summarize(sents, limit):
